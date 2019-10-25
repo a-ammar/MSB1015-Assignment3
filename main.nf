@@ -27,7 +27,7 @@ import org.openscience.cdk.silent.*;
 // each row is mapped to a tuple of three items (3 columns)
 
 Channel.fromPath("./data/wikidata_smiles.tsv")
-    .splitCsv(header: ['molecule_ids', 'smiles', 'isoSmiles'], sep:'\t')
+    .splitCsv(header: ['molecule_ids', 'smiles', 'isoSmiles'], sep:'\t', by:1000)
     .map{ row -> tuple(row.molecule_ids, row.smiles, row.isoSmiles) }
     .set { molecules_ch }
 
@@ -49,37 +49,44 @@ process calculateAndPrintJPlogP {
     exec:
 
 	try {
-		// clean the Wikidata molecule id by extracting only the ID form the URL
-		molecule_id = molecule_ids.substring(molecule_ids.lastIndexOf("/")+1)
+	
+		// Loop through the set of isoSmiles (of length 1000) channeled from the input channel as chunk
+		// and perform the descriptor calculation and printing on each item
 
-		// Check if the isoSmile is not empty then parse it, otherwise check the canonical smile
-		if(!isoSmiles.trim().equals("")){
+		for(int i = 0; i < isoSmiles.size(); i++){
 
-			// parse the iso smile into AtomContainer
-			moleculeAtomContainer = smileParser.parseSmiles(isoSmiles)				
-			
-		}else{
-			// if the isoSmile is empty, print a message and try parsing the canonical smile
-			println "Isomeric SMILE for $molecule_id not found, Trying canonical SMILE.."
+			// clean the Wikidata molecule id by extracting only the ID form the URL
+			molecule_id = molecule_ids[i].substring(molecule_ids[i].lastIndexOf("/")+1)
 
-			// check if the canonical smile is not empty
-			if(!smiles.trim().equals("")){
-				
+			// Check if the isoSmile is not empty then parse it, otherwise check the canonical smile
+			if(!isoSmiles[i].trim().equals("")){
+
 				// parse the iso smile into AtomContainer
-				moleculeAtomContainer = smileParser.parseSmiles(smiles)				
+				moleculeAtomContainer = smileParser.parseSmiles(isoSmiles[i])				
+				
 			}else{
-				println "Canonical SMILE not found, NAN value will be reported"
+				// if the isoSmile is empty, print a message and try parsing the canonical smile
+				println "Isomeric SMILE for $molecule_id not found, Trying canonical SMILE.."
+
+				// check if the canonical smile is not empty
+				if(!smiles[i].trim().equals("")){
+					
+					// parse the smile into AtomContainer
+					moleculeAtomContainer = smileParser.parseSmiles(smiles[i])				
+				}else{
+					println "Canonical SMILE not found, NAN value will be reported"
+				}
 			}
-		}
 
-		// calculate the JPlogP descriptor for the molecule AtomContainer
-		jplogp = jplogpDescriptor.calculate(moleculeAtomContainer).getValue()
+			// calculate the JPlogP descriptor for the molecule AtomContainer
+			jplogp = jplogpDescriptor.calculate(moleculeAtomContainer).getValue()
 
-		// Print the JPlogP value
-		println "JPLogP of $molecule_id : " + jplogp		
-		
+			// Print the JPlogP value
+			println "JPLogP of $molecule_id : " + jplogp
+		}		
+	
 	} catch (Exception exc) {
 		// Catch the errors if any and report them to console
-		println "Error in $molecule_id : " + exc.message
+		println "Error : " + exc.message
 	} 
 }

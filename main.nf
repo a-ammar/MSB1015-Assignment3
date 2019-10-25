@@ -31,3 +31,9 @@ Channel.fromPath("./data/wikidata_smiles.tsv")
     .map{ row -> tuple(row.molecule_ids, row.smiles, row.isoSmiles) }
     .set { molecules_ch }
 
+// define in instance of the SMILES parser and the JPlogP descriptor classes form CDK
+// Since those classes will be used in every process instance, it is better to define them here
+
+smileParser  = new SmilesParser(SilentChemObjectBuilder.getInstance())
+jplogpDescriptor = new JPlogPDescriptor()
+

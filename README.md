@@ -101,7 +101,7 @@ There is a parameter can be added to the splitCsv() function calld "by" and used
 
 
 
-#### Workflow benchmark without using data chunks
+#### Workflow benchmark without using data chunks (the impementation available in commit [57c805e](https://github.com/a-ammar/MSB1015-Assignment3/commit/57c805e8cf626847cbd92504b0d076f5a2c9d78a))
 
 In our "wikidata_smiles.tsv" file, there are 158767 compound. So, using the default splitCSV() command in the channel, each row (compound) will be processed in an independent instance of the process (i.e. 158767).
 

@@ -68,9 +68,9 @@ Nextflow can be used on any POSIX compatible system (Linux, OS X, etc). It requi
 
 This is a simple workflow composed of one step. First, input channel is defined (molecules_ch) to read the SMILEs data from the TSV file and parse it line by line.
 
-Next, a process is defined to process a line (or more) from the TSV which is feed through the input channel. It calculated the JPlogP descriptor and print it to the console.
+Next, a process is defined to process a line (or more) from the TSV which is feed through the input channel. It calculates the JPlogP descriptor and prints it to the console.
 
-The main aim from this workflow is to examine the performance and the execution time of the pipeline using different settings for the number of CPUs and the way the input data is chuncked.
+The main aim from this workflow is to examine the performance and the execution time of the pipeline using different settings of the number of CPUs and the way the input data is chuncked.
 
 
 
@@ -93,17 +93,17 @@ It is better to use combination of the two directives to fully control our pipel
 
 #### Setting the input channel behavior 
 
-Normally, when you use Channel.fromPath() with the splitCsv() function, it will parse the provides CSV/TSV file line by line and feed each row to an instance of each process that use that channel.
+Normally, when you use Channel.fromPath() with the splitCsv() function, it will parse the provided CSV/TSV file line by line and feed each row to an instance of each process that use that channel.
 
 So, if we have a file with 10000 lines then 10000 instances of our process will be created and executed.
 
-There is a parameter can be added to the splitCsv() function calld "by" and used like "by:1000". This parameter how many rows should be read as a chunk before channeling them to the process instance. So, for example, if we have a file with 10000 lines and we used "by:1000" then only 10 instances of our process will be created and executed and it is our job to loop through the 1000 item in each chunk inside the process code and process them.
+There is a parameter can be added to the splitCsv() function calld "by" and used like "by:1000". This parameter determines how many rows should be read as a chunk before channeling them to the process instance. So, for example, if we have a file with 10000 lines and we used "by:1000" then only 10 instances of our process will be created and executed and it is our job to loop through the 1000 item in each chunk inside the process code and process them.
 
 
 
 #### Workflow benchmark without using data chunks (the impementation available in commit [57c805e](https://github.com/a-ammar/MSB1015-Assignment3/commit/57c805e8cf626847cbd92504b0d076f5a2c9d78a))
 
-In our "wikidata_smiles.tsv" file, there are 158767 compound. So, using the default splitCSV() command in the channel, each row (compound) will be processed in an independent instance of the process (i.e. 158767).
+In our "wikidata_smiles.tsv" file, there are 158767 compound. So, using the default splitCSV() command in the channel, each row (compound) will be processed in an independent instance of the process (i.e. 158767 instances).
 
 Using three profiles defined in "nextflow.config" to use 1,2 and 4 cores, these were the reported execution times:
 
@@ -117,7 +117,7 @@ And the CPU behavior for 1 CPUs and 4 CPUs is shown below:
 
 ![](https://user-images.githubusercontent.com/43293732/67582493-baf11a80-f6fe-11e9-8477-ffa0aeb18ceb.png)
 
-We can see that one core is more occupied than the others. Since the OS is responsible of allocating the CPUs to the processes, we see that the color switched because another CPU is allocated to the workflow.  The is no guarantee that the exact same core (physically) with process the whole workflow.
+We can see that one core is more occupied than the others. Since the OS is responsible of allocating the CPUs to the processes, we see that the color switched because another CPU is allocated to the workflow.  There is no guarantee that the exact same core (physically) will process the whole workflow.
 
 **4 CPUs**
 
@@ -143,7 +143,7 @@ And the CPU behavior for 1 CPUs and 4 CPUs is shown below:
 
 ![](https://user-images.githubusercontent.com/43293732/67583391-58991980-f700-11e9-9abf-3caf0dfe667d.png)
 
-We see here that there is more work for the process instance because it has to deal with 1000 smile so the 1 core is fully consumed and lasts longer. Also the overall time for the workflow is shorter because the process is faster dealing with list of smiles than creating a new instance for each value.
+We see here that there is more work done by the process instance because it has to deal with 1000 smile so the 1 core is fully consumed and lasts longer. Also the overall time for the workflow is shorter because the process is faster dealing with list of smiles than creating a new instance for each SMILE.
 
 **4 CPUs**
 
